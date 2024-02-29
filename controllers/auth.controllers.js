@@ -75,7 +75,20 @@ const signup = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {};
+const signin = async (req, res) => {
+    /**
+     * 1. take  data from request body
+     */
 
-const logout = async (req, res) => {};
-export { signup, login, logout };
+    /**
+     * 2. check  the validation for user login credentials 
+     */
+
+    /**
+     * 3. find  user on the basis of email or userId for login if user found then generate token  and send it to client side otherwise send error message
+     */
+
+};
+
+const signout = async (req, res) => {};
+export { signup, };
