@@ -31,7 +31,6 @@ let UserModel = new Schema(
       type: String,
       required: [true, "Password fields are mandatory"],
       minLength: [8],
-      maxLength: [10],
       select: false, //hides this field while querying, used to hide passwords in responses , default is false ,
     },
 
@@ -47,12 +46,12 @@ let UserModel = new Schema(
 
 
 // password save as encrypted in database .
-UserModel.pre("save", async function (next) {
+UserModel.pre("save",  function (next) {
     if (!this.isModified("password")) {
         return next();
     }
     
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password =  bcrypt.hashSync(this.password, 10);
     next();
 });
 
