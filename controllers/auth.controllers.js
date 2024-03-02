@@ -1,6 +1,7 @@
 import User from "../models/users.model.js";
 import emailValidtor from "email-validator";
 import bcrypt from "bcryptjs";
+import cookieParser from "cookie-parser";
 
 const signup = async (req, res) => {
   const userData = req.body;
@@ -77,92 +78,129 @@ const signup = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-    /**
-     * 1. take  data from request body
-     */
-    const {email , password} = req.body;
+  /**
+   * 1. take  data from request body
+   */
+  const { email, password } = req.body;
 
-    /**
-     * 2. check  the validation for user login credentials 
-     */
+  /**
+   * 2. check  the validation for user login credentials
+   */
 
-    
-    if(!email){
-  
-       return res.status(401).json({
-          success:false,
-          message:"Please provide email Id "
-       })
-      
-    }
+  if (!email) {
+    return res.status(401).json({
+      success: false,
+      message: "Please provide email Id ",
+    });
+  }
 
-    if(!password){
-      
-      return  res.status(401).json({
-            success:false,
-            message:"Please enter password."
+  if (!password) {
+    return res.status(401).json({
+      success: false,
+      message: "Please enter password.",
+    });
+  }
+
+  try {
+    // const user = await  User.findOne({
+    //    $or : [{email} , {userId}]
+    // });
+
+    const user = await User.findOne({ email }, "+password");
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Please provide  valid email id / userid and password.",
       });
-
     }
-   
-    try {
-      
-      // const user = await  User.findOne({
-      //    $or : [{email} , {userId}]
-      // });
-      
-      const user = await User.findOne({email},'+password');
 
-      if(!user){
-         return res.status(401).json({
-             success:false,
-             message:"Please provide  valid email id / userid and password."
-         })
-      }
-  
-      /**
-       * 3. find  user on the basis of email or userId for login if user found then generate token  and send it to client side otherwise send error message
-       */
-      
-      if(!bcrypt.compareSync(password, user.password)){
-               
-           return res.status(401).json({
-                  success:false,
-                  message:"Incorrect  Password!"
-           });     
-  
-      }
-      
-      // generate token 
-      
-      const token = await user.generateToken();
-  
-      // remove password from the response object to secure it .
-  
-      user.password = undefined;
-  
-      const cookiesOption = {
-          maxAge : 7*24*60*60, // for 7 days,
-          httpOnly : true,
-          secure : true,   // only works on https connection
-      }
-  
-      res.cookie("token",token,cookiesOption);
-      res.status(201).json({
-          success:true,
-          message:"signIn successfully..",
-          accessToken: token
-      })
-    } catch (error) {
-       console.log("Creating error while signin user",error);
-       return res.status(501).json({
-             success:false,
-             message:"Failed to signIn Please try again."
-       })
+    /**
+     * 3. find  user on the basis of email or userId for login if user found then generate token  and send it to client side otherwise send error message
+     */
+
+    if (!bcrypt.compareSync(password, user.password)) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect  Password!",
+      });
     }
+
+    // generate token
+
+    const token = await user.generateToken();
+
+    // remove password from the response object to secure it .
+
+    user.password = undefined;
+
+    const cookiesOption = {
+      maxAge: 7 * 24 * 60 * 60, // for 7 days,
+      httpOnly: true,
+      secure: true, // only works on https connection
+    };
+
+    res.cookie("token", token, cookiesOption);
+    res.status(201).json({
+      success: true,
+      message: "signIn successfully..",
+      accessToken: token,
+    });
+  } catch (error) {
+    console.log("Creating error while signin user", error);
+    return res.status(501).json({
+      success: false,
+      message: "Failed to signIn Please try again.",
+    });
+  }
 };
 
 const signout = async (req, res) => {
+  /**
+   * take user details from req.user
+   */
+  const user = req.user;
 
+  // console.log(user); //object
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Not  authorized! You are not signIn",
+    });
+  }
+
+  try {
+    /**
+     * if this user is exist in the database then signout  otherwise send an error massage that you are not signin in yet.
+     */
+    const userExists = await User.findById(user._id);
+
+    if (!userExists) {
+      return res.status(401).json({
+        success: false,
+        message: "Not  valid user!",
+      });
+    }
+
+    const cookieOption = {
+      maxAge : 0,
+      httpOnly: true,
+      secure: true,
+    };
+
+    res.cookie("token", null, cookieOption);
+
+    res.status(201).json({
+      success: true,
+      message: "Sign out successfully. See you soon.",
+    });
+  } catch (error) {
+    console.log("Error in signing out the user ", error);
+    res.status(501).json({
+      success: false,
+      message: "Failed to sign out.Please try again",
+    });
+  }
 };
-export { signup, signin , signout };
+export { signup, signin, signout };
