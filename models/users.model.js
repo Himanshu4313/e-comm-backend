@@ -72,7 +72,7 @@ UserModel.methods = {
         process.env.JWT_SECRET,
   
         {
-          expiresIn: 30 * 24 * 60, // 30 days
+          expiresIn: 7* 24 * 60 * 60, // 7 days
         }
       );
       return token;
