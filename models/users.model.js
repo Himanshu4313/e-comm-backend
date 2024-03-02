@@ -43,6 +43,26 @@ let UserModel = new Schema(
       enum: ["ADMIN", "CUSTOMER"],
       default: "CUSTOMER",
     },
+    Otp:{
+       type: Number,
+       required:[false,"Otp field is not required"],
+    },
+
+    OtpexpiresIn :{
+        type : Date,
+        required: false,
+    },
+
+    forgotPasswordToken : {
+          type:String ,
+    },
+
+    forgotPasswordTokenExpireIn : {
+          type : Date,
+    }
+
+
+    
   },
   { timestamps: true, versionKey: false }
 );

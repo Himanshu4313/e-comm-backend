@@ -1,7 +1,9 @@
 import User from "../models/users.model.js";
 import emailValidtor from "email-validator";
 import bcrypt from "bcryptjs";
-import cookieParser from "cookie-parser";
+import { createOTP } from "../utils/generateOTP.js";
+import sendEmail from "../utils/send.email.js";
+import crypto from "crypto";
 
 const signup = async (req, res) => {
   const userData = req.body;
@@ -184,7 +186,7 @@ const signout = async (req, res) => {
     }
 
     const cookieOption = {
-      maxAge : 0,
+      maxAge: 0,
       httpOnly: true,
       secure: true,
     };
@@ -203,4 +205,141 @@ const signout = async (req, res) => {
     });
   }
 };
-export { signup, signin, signout };
+
+const forgotPassword = async (req, res) => {
+  /**
+   * 1. First we take email id  from request body and check whether it is present or not?
+   * If yes then next step will be
+   */
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(401).json({
+      success: false,
+      message: "Email fields is required",
+    });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "Not vaild user.Please provide me correct email",
+    });
+  }
+
+  /**
+   *  if user is valid then generate a otp and send to the given or valid email address.
+   *
+   */
+  const OTP = createOTP();
+
+  user.Otp = OTP;
+
+  user.OtpexpiresIn = Date.now() + 300000; // Otp expire after 6 mins
+
+  await user.save();
+
+  const subject = `OTP verification for forgot-password from e-commerce`;
+  const message = `<p>To authenticate, please use the following One Time Password (OTP):</p><br> <b>${OTP}</b> <br> <p>Don't share this OTP with anyone. Our customer service team will never ask you for your password, OTP, credit card , or banking info.</p> <br> <p>We hope to see you again soon.</p>`;
+
+  await sendEmail(email, subject, message);
+
+  res.status(201).json({
+    success: true,
+    message: "OTP has been send in your registered emailID successfully.",
+  });
+};
+
+const verifyOTP = async (req, res) => {
+  const { otp } = req.body;
+
+  if (!otp) {
+    return res.status(401).json({
+      success: false,
+      message: "Please enter OTP (One Time Password)",
+    });
+  }
+
+  try {
+    const user = await User.findOne({ Otp: otp }); // here we verify otp  with database
+
+    if (user == null) {
+      return res.status(401).json({
+        success: false,
+        message: "Please enter correct OTP",
+      });
+    }
+
+    if (user.OtpexpiresIn < Date.now()) {
+      user.Otp = undefined;
+      user.OtpexpiresIn = undefined;
+
+      await user.save();
+
+      return res.status(401).json({
+        success: false,
+        message: "Your OTP is Expired.",
+      });
+    }
+
+    user.Otp = undefined;
+    user.OtpexpiresIn = undefined;
+
+
+    res.status(201).json({
+      success: true,
+      message: "Verification Successful",
+    });
+  } catch (error) {
+    console.log("Error while verifyOTP", error);
+    return res.status(501).json({
+      success: false,
+      message: "Oops. Something went wrong!",
+    });
+  }
+};
+
+const resetPassword = async (req, res) => {
+   // email take 
+  //  new password
+  // confirm password
+
+  const {email , newPassword, confirmPassword} = req.body;
+  try {
+    // then set in the database and return success full message to the customer/user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User Not Found"
+      });
+    } 
+    
+    if(newPassword !== confirmPassword){
+        return res.status(401).json({
+              success:false,
+              message:"Your newPassword and confirmPassword is doesn't match"
+        })
+    }
+
+    user.password = confirmPassword;
+
+    await user.save();
+
+    res.status(201).json({
+        success: true,
+        message:"Successfully change  your Password.",
+    });
+
+  } catch (error) {
+    console.log("Error while Reset Password : ", error);
+    return res.status(501).json({
+          success:false,
+          message:"Faileds to forgot your password.Please try again"
+    });
+  }
+};
+export { signup, signin, signout, forgotPassword, verifyOTP, resetPassword };
