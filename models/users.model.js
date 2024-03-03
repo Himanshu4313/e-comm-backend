@@ -53,13 +53,29 @@ let UserModel = new Schema(
         required: false,
     },
 
-    forgotPasswordToken : {
-          type:String ,
-    },
-
-    forgotPasswordTokenExpireIn : {
-          type : Date,
-    }
+    address: {
+        street: {
+          type:String,
+          required:false,
+        },
+        city: {
+          type:String,
+          required:false
+        },
+        state: {
+          type:String,
+          required:false
+        },
+        postalCode: { 
+          type : String,
+          required : false
+        },
+        country: {
+           type : String,
+           required:false
+          }
+      },
+    
 
 
     

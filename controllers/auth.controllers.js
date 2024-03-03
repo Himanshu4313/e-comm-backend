@@ -143,9 +143,17 @@ const signin = async (req, res) => {
     };
 
     res.cookie("token", token, cookiesOption);
+
+    const userdata = {
+       name:user.name,
+       userId:user.userId,
+       email:user.email,
+       userType:user.userType,
+    }
     res.status(201).json({
       success: true,
       message: "signIn successfully..",
+      user:  userdata,
       accessToken: token,
     });
   } catch (error) {
@@ -273,6 +281,7 @@ const verifyOTP = async (req, res) => {
     }
 
     if (user.OtpexpiresIn < Date.now()) {
+
       user.Otp = undefined;
       user.OtpexpiresIn = undefined;
 
@@ -287,6 +296,7 @@ const verifyOTP = async (req, res) => {
     user.Otp = undefined;
     user.OtpexpiresIn = undefined;
 
+   await  user.save();
 
     res.status(201).json({
       success: true,
