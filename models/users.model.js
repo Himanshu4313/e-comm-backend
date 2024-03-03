@@ -75,11 +75,7 @@ let UserModel = new Schema(
            required:false
           }
       },
-    
-
-
-    
-  },
+      },
   { timestamps: true, versionKey: false }
 );
 

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.routes.js";
+import categoryRouter from "./routes/category.routes.js";
 
 const app = express();
 
@@ -20,8 +21,13 @@ app.use(cors({
 app.use(cookieParser())
 
 
-// authentication related routes
+// Authentication related routes
 app.use("/ecommerce/api/v1/auth",authRouter);
+
+// Category related routes
+app.use("/ecommerce/api/v1/category",categoryRouter);
+
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to e-commerce server");
