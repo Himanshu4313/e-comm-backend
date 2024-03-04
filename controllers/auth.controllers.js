@@ -137,7 +137,7 @@ const signin = async (req, res) => {
     user.password = undefined;
 
     const cookiesOption = {
-      maxAge: 7 * 24 * 60 * 60, // for 7 days,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // for 7 days,
       httpOnly: true,
       secure: true, // only works on https connection
     };

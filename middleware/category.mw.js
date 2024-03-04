@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 config();
-const categoryAuth = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   const {token} = req.cookies;
 
   if (!token) {
@@ -32,4 +32,4 @@ const categoryAuth = (req, res, next) => {
   }
 };
 
-export { categoryAuth };
+export { isAdmin };
