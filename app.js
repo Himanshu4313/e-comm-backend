@@ -3,6 +3,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.routes.js";
 import categoryRouter from "./routes/category.routes.js";
+import productRouter from "./routes/product.routes.js";
+
 
 const app = express();
 
@@ -27,10 +29,12 @@ app.use("/ecommerce/api/v1/auth",authRouter);
 // Category related routes
 app.use("/ecommerce/api/v1/category",categoryRouter);
 
+// Product related routes
+app.use("/ecommerce/api/v1/product",productRouter);
 
 
 app.get("/", (req, res) => {
-  res.send("Welcome to e-commerce server");
+  res.send("Welcome to e-commerce server",);
 });
 
 app.use("*", (req, res) => {

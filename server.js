@@ -3,8 +3,20 @@ import { config } from "dotenv";
 import connectToDatabase from "./configs/connect.db.js";
 config();
 import User from "./models/users.model.js";
+import cloudinary from "cloudinary";
+
+
 const PORT = process.env.PORT || 3001;
 // Start server on the port defined in .env file or 3001 if not present
+
+// configure cloudinary 
+
+cloudinary.v2.config({
+  cloud_name :process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLODINARY_API_SECRET,
+})
+
 
 connectToDatabase()
   .then(() => {
@@ -31,7 +43,7 @@ async function init() {
   }
 
   try {
-    user = await User.create({
+    const  user = await User.create({
       name: "Himanshu",
       userId: "admin",
       email: "hk225064@gmail.com",
