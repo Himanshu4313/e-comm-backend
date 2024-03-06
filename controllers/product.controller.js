@@ -117,9 +117,80 @@ const createProduct = async (req, res) => {
   }
 };
 
-const getProducts = async (req, res) => {};
+const getProducts = async (req, res) => {
+      /**
+       * 1. fetch all the product list from database and send to the  client side
+       */
+      try {
+            const productList =  await Product.find();
 
-const updateProduct = async (req, res) => {};
+            if(!productList){
+                 return res.status(401).json({
+                       success:false,
+                       message:"No  products found"
+                 });
+            }
+
+            return  res.status(201).json({
+                         success :true ,
+                         count   :productList.length,
+                         data    :productList
+               }) ;
+      } catch (error) {
+         console.log("Error in getting products ", error);
+        return res.status(501)
+          .json({
+            success: false,
+            message: "Server Error! Can't retrieve product list.",
+            });
+      }
+};
+
+const updateProduct = async (req, res) => {
+         const updates = req.body;
+          const  id= req.params.id;
+
+        console.log("updated product fields are ",updates);
+        if(!updates.title && !updates.price && !updates.description && !updates.category  && !updates.rating && !updates.brand ) {
+            
+          return res.status(401).json({
+                 success:false,
+                 message:"Please provide updating fields. You must provide at least one field."
+          });
+        }
+
+      try {
+                  const updateProduct = await Product.findById({_id : id});
+                  if (!updateProduct) {
+                     return res.status(404).json({success: false, message: 'No such product exists.'})
+                  }
+                  // check for any non-existent fields in the updates object
+                  let isValidField = true;
+                  Object.keys(updates).forEach((item)=>{
+                      if(!Object.prototype.hasOwnProperty.call(updateProduct, item)){
+                           isValidField = false;
+                      }
+                  });
+                  if (!isValidField){
+                       return res.status(400).json({success:false,message:'Invalid Fields Supplied!'})
+                  }
+
+                  // now we can perform the update
+                  updateProduct.set(updates);
+                  await updateProduct.save();
+                  
+                return  res.status(200).json({
+                    success:true,
+                    data: updateProduct
+                })
+      } catch (error) {
+           console.log("Error in Updating the product", error);
+           return res.status(501).json({
+                  success:false,
+                  message:"Internal Server Error!"
+           })
+      }
+};
 
 const deleteProduct = async (req, res) => {};
 
