@@ -10,6 +10,7 @@ const app = express();
 
 app.use(express.json()); // for parsing application/json 
 
+
 // parse text as url-encoded data with the query string parser 
 app.use(express.urlencoded({ extended: true })); 
 

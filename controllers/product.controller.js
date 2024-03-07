@@ -147,51 +147,69 @@ const getProducts = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-         const updates = req.body;
+          const {title , price , rating , description} = req.body;
+
           const  id= req.params.id;
 
-        console.log("updated product fields are ",updates);
-        if(!updates.title && !updates.price && !updates.description && !updates.category  && !updates.rating && !updates.brand ) {
-            
-          return res.status(401).json({
-                 success:false,
-                 message:"Please provide updating fields. You must provide at least one field."
-          });
-        }
+        console.log("updated product fields are ",title,price,rating,description);
 
-      try {
-                  const updateProduct = await Product.findById({_id : id});
-                  if (!updateProduct) {
-                     return res.status(404).json({success: false, message: 'No such product exists.'})
-                  }
-                  // check for any non-existent fields in the updates object
-                  let isValidField = true;
-                  Object.keys(updates).forEach((item)=>{
-                      if(!Object.prototype.hasOwnProperty.call(updateProduct, item)){
-                           isValidField = false;
-                      }
-                  });
-                  if (!isValidField){
-                       return res.status(400).json({success:false,message:'Invalid Fields Supplied!'})
-                  }
-
-                  // now we can perform the update
-                  updateProduct.set(updates);
-                  await updateProduct.save();
-                  
-                return  res.status(200).json({
-                    success:true,
-                    data: updateProduct
-                })
-      } catch (error) {
-           console.log("Error in Updating the product", error);
-           return res.status(501).json({
-                  success:false,
-                  message:"Internal Server Error!"
-           })
+      if(!title &&  !price && !rating && !description ){
+             return res.status(401).json({success:false, message: "Provide at least one fields"})
       }
-};
+       
+      try {
+        
+        const product =  await Product.findById(id);
+        if (!product ) {
+           return res.status(404).json({success:false,message:"No such product present"});
+        }
+  
+        if(title) product.title = title;
+        if(price) product.price = price;
+        if(rating)  product.rating.rate = rating;
+        if(description) product.description = description;
+  
+        await product.save();
+  
+        res.status(201).json({
+               success:true,
+               message:"Product updated Successfully",
+               data:product
+        })
 
-const deleteProduct = async (req, res) => {};
+      } catch (error) {
+        console.log("Error in updating the product", error);
+        return res.status(501)
+          .send(`Error when updating the product -> ${error}/n`);
+      }
+      }
+     
+    
+
+const deleteProduct = async (req, res) => {
+   
+           const id = req.params.id;
+
+           try {
+                const deleteProduct = await  Product.deleteOne({_id : id});
+
+                if(deleteProduct){
+                   return res.status(201).json({
+                          success:true,
+                          message:"Successfully deleting the product",
+                   })
+                }else{
+                   return res.status(501).json({
+                          success:false,
+                          message:"No such product found "
+                   });
+                }
+
+           } catch (error) {
+               console.log("Error in deleting the product ", error);
+               return res.status(501)
+                 .send(`Error when deleting the product -> ${error}`);
+           }
+};
 
 export { createProduct, getProducts, updateProduct, deleteProduct };
